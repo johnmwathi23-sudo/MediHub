@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediHub - Medical Equipment Kenya</title>
+    <meta name="description" content="Buy high-quality medical equipment in Kenya. Diagnostic tools, hospital furniture, and mobility aids." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              medical: {
+                50: '#eefbfe',
+                100: '#d7f4fd',
+                500: '#00aeef', /* Brand Blue */
+                600: '#0095ce',
+                700: '#0077a5',
+                800: '#005b7f',
+                900: '#00425c',
+              },
+              brand: {
+                green: '#39b54a', /* Brand Green */
+                gray: '#4d4d4d',  /* Brand Grey */
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
+    "react/": "https://esm.sh/react@^19.2.1/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.10.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.560.0",
+    "recharts": "https://esm.sh/recharts@^3.5.1"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 text-slate-800 font-sans antialiased">
+    <div id="root"></div>
+  </body>
+</html>
