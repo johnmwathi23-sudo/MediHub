@@ -6,7 +6,7 @@ import { ShoppingCart, User, Menu, X, LogOut, Plus } from 'lucide-react';
 import { Button } from './ui/Button';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, canAccessAdmin } = useAuth();
   const { cartCount } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,9 +26,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                           <div className="flex items-center">
                               <span className="text-xl font-bold">MediHub Admin</span>
                               <div className="ml-10 flex items-baseline space-x-4">
-                                  <Link to="/admin/dashboard" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Dashboard</Link>
-                                  <Link to="/admin/products" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Products</Link>
-                                  <Link to="/admin/orders" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Orders</Link>
+              {isAdmin && (
+                                         <>
+                                             <Link to="/admin/dashboard" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Dashboard</Link>
+                                             <Link to="/admin/products" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Products</Link>
+                                             <Link to="/admin/orders" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Orders</Link>
+                                         </>
+                                     )}
+                                     {canAccessAdmin && (
+                                         <Link to="/admin/media" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Media</Link>
+                                     )}
                               </div>
                           </div>
                           <div className="flex items-center">
@@ -98,8 +105,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               
               {user ? (
                 <div className="relative flex items-center space-x-2">
-                   {isAdmin && (
-                       <Link to="/admin/dashboard" className="text-sm text-medical-600 font-medium mr-2">Admin</Link>
+                   {canAccessAdmin && (
+                        <Link to={isAdmin ? "/admin/dashboard" : "/admin/media"} className="text-sm text-medical-600 font-medium mr-2">Admin</Link>
                    )}
                    <span className="text-sm text-gray-700 hidden md:block">Hi, {user.name.split(' ')[0]}</span>
                    <button onClick={handleLogout} className="text-gray-400 hover:text-gray-500">

@@ -17,10 +17,17 @@ import { About } from './pages/About';
 import { Dashboard } from './pages/admin/Dashboard';
 import { AdminProducts } from './pages/admin/Products';
 import { AdminOrders } from './pages/admin/Orders';
+import { MediaManager } from './pages/admin/MediaManager';
 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAdmin } = useAuth();
   if (!user || !isAdmin) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+};
+
+const MediaRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, canAccessAdmin } = useAuth();
+  if (!user || !canAccessAdmin) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
@@ -41,6 +48,7 @@ const AppRoutes = () => {
         <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
         <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/media" element={<MediaRoute><MediaManager /></MediaRoute>} />
       </Routes>
     </Layout>
   )
