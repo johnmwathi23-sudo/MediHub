@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import { requireSupabase } from './supabase';
+const supabase = requireSupabase();
 import { Product, User, Order, UserRole, OrderStatus, AnalyticsData } from '../types';
 
 export const api = {
