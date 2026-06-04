@@ -37,7 +37,7 @@ export const About: React.FC = () => {
                         </div>
                         <div className="mt-10 lg:mt-0 lg:w-1/2 lg:pl-10">
                             <img
-                                className="rounded-2xl shadow-xl w-full object-cover h-80 lg:h-96 border-4 border-white"
+                                className="rounded-2xl shadow-xl w-full object-cover h-56 sm:h-80 lg:h-96 border-4 border-white"
                                 src={aboutImage}
                                 alt="MediHub Medical Team"
                             />

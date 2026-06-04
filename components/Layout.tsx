@@ -25,7 +25,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                       <div className="flex justify-between h-16">
                           <div className="flex items-center">
                               <span className="text-xl font-bold">MediHub Admin</span>
-                              <div className="ml-10 flex items-baseline space-x-4">
+                              <div className="hidden sm:flex sm:ml-10 sm:space-x-4">
               {isAdmin && (
                                          <>
                                              <Link to="/admin/dashboard" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700">Dashboard</Link>
@@ -38,14 +38,31 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                      )}
                               </div>
                           </div>
-                          <div className="flex items-center">
-                              <span className="mr-4 text-sm text-gray-300">Welcome, {user?.name}</span>
+                          <div className="flex items-center space-x-2 sm:space-x-4">
+                              <span className="hidden sm:inline text-sm text-gray-300">Welcome, {user?.name}</span>
                               <Button variant="danger" size="sm" onClick={handleLogout}>Logout</Button>
+                              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="sm:hidden text-white p-1">
+                                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                              </button>
                           </div>
                       </div>
                   </div>
+                  {isMobileMenuOpen && (
+                    <div className="sm:hidden bg-slate-700 px-4 py-3 space-y-2 border-t border-slate-600">
+                      {isAdmin && (
+                        <>
+                          <Link to="/admin/dashboard" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                          <Link to="/admin/products" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Products</Link>
+                          <Link to="/admin/orders" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Orders</Link>
+                        </>
+                      )}
+                      {canAccessAdmin && (
+                        <Link to="/admin/media" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Media</Link>
+                      )}
+                    </div>
+                  )}
               </nav>
-              <main className="flex-1 p-6">
+              <main className="flex-1 px-4 sm:p-6">
                   {children}
               </main>
           </div>
@@ -74,7 +91,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <div className="bg-medical-600 text-white text-xs py-1">
         <div className="max-w-7xl mx-auto px-4 flex justify-between">
           <p>📞 +254 728 708495 | 📧 info@medihub.africa</p>
-          <p>Kenya's Trusted Medical Equipment Supplier</p>
+          <p className="hidden sm:block">Kenya's Trusted Medical Equipment Supplier</p>
         </div>
       </div>
 

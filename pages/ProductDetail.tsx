@@ -54,7 +54,7 @@ export const ProductDetail: React.FC = () => {
 
           {/* Info */}
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-4">{product.name}</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-4 break-words">{product.name}</h1>
             
             <div className="flex items-center mb-6">
                <div className="flex items-center text-yellow-400">

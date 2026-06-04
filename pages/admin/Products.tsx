@@ -264,11 +264,11 @@ export const AdminProducts: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="ml-5 flex-shrink-0 flex space-x-2">
-                   <button onClick={() => handleOpenModal(product)} className="text-gray-400 hover:text-medical-600">
+                <div className="ml-5 flex-shrink-0 flex space-x-1">
+                   <button onClick={() => handleOpenModal(product)} className="text-gray-400 hover:text-medical-600 p-2">
                       <Edit className="h-5 w-5" />
                    </button>
-                   <button onClick={() => handleDelete(product.id)} className="text-gray-400 hover:text-red-600">
+                   <button onClick={() => handleDelete(product.id)} className="text-gray-400 hover:text-red-600 p-2">
                       <Trash className="h-5 w-5" />
                    </button>
                 </div>
@@ -397,7 +397,7 @@ export const AdminProducts: React.FC = () => {
                                         )}
 
                                         {/* Hover Actions */}
-                                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center space-x-2 transition-opacity">
+                                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 flex items-center justify-center space-x-2 transition-opacity">
                                             {img !== formData.image && (
                                                 <button type="button" onClick={() => setPrimaryImage(img)} className="text-white hover:text-medical-200" title="Make Primary">
                                                     <Star className="h-5 w-5" />

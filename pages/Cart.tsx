@@ -81,7 +81,7 @@ export const Cart: React.FC = () => {
             </ul>
           </div>
 
-          <div className="lg:col-span-5 mt-16 rounded-lg bg-white px-4 py-6 sm:p-6 lg:p-8 lg:mt-0 shadow-sm border">
+          <div className="lg:col-span-5 mt-8 sm:mt-16 lg:mt-0 rounded-lg bg-white px-4 py-6 sm:p-6 lg:p-8 shadow-sm border">
             <h2 className="text-lg font-medium text-gray-900">Order Summary</h2>
             <dl className="mt-6 space-y-4">
               <div className="flex items-center justify-between">

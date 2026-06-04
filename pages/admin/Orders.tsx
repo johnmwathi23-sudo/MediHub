@@ -22,7 +22,7 @@ export const AdminOrders: React.FC = () => {
   return (
     <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Order Management</h1>
-        <div className="bg-white shadow overflow-hidden rounded-lg">
+        <div className="bg-white shadow overflow-x-auto rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                     <tr>
