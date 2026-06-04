@@ -1,7 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Target, Users, Award, ShieldCheck } from 'lucide-react';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 export const About: React.FC = () => {
+    const [aboutImage, setAboutImage] = useState('/about-hero.png');
+
+    useEffect(() => {
+        const loadImage = async () => {
+            try {
+                const { supabase } = await import('../services/supabase');
+                const s = supabase!;
+                const { data } = await s.from('site_settings').select('value').eq('key', 'about_image').single();
+                if (data?.value) {
+                    setAboutImage(`${SUPABASE_URL}/storage/v1/object/public/site-assets/${data.value}`);
+                }
+            } catch {}
+        };
+        loadImage();
+    }, []);
+
     return (
         <div className="bg-white">
             {/* Hero Section */}
@@ -20,7 +38,7 @@ export const About: React.FC = () => {
                         <div className="mt-10 lg:mt-0 lg:w-1/2 lg:pl-10">
                             <img
                                 className="rounded-2xl shadow-xl w-full object-cover h-80 lg:h-96 border-4 border-white"
-                                src="/about-hero.png"
+                                src={aboutImage}
                                 alt="MediHub Medical Team"
                             />
                         </div>

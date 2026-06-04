@@ -15,3 +15,7 @@ export function requireSupabase() {
   }
   return supabase;
 }
+
+export function storageUrl(path: string) {
+  return `${supabaseUrl}/storage/v1/object/public/site-assets/${path}`;
+}

@@ -6,16 +6,28 @@ import { Button } from '../components/ui/Button';
 import { useCart } from '../context/CartContext';
 import { ArrowRight, Star, Truck, ShieldCheck, Activity } from 'lucide-react';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 export const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [heroImage, setHeroImage] = useState('/hero.png');
   const { addToCart } = useCart();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       const all = await api.products.getAll();
       setFeaturedProducts(all.filter(p => p.featured || p.rating >= 4.8).slice(0, 4));
+
+      try {
+        const { supabase } = await import('../services/supabase');
+        const s = supabase!;
+        const { data } = await s.from('site_settings').select('value').eq('key', 'hero_image').single();
+        if (data?.value) {
+          setHeroImage(`${SUPABASE_URL}/storage/v1/object/public/site-assets/${data.value}`);
+        }
+      } catch {}
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   return (
@@ -52,7 +64,7 @@ export const Home: React.FC = () => {
         <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
           <img
             className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full shadow-lg rounded-l-3xl"
-            src="/hero.png"
+            src={heroImage}
             alt="Advanced Medical Equipment"
           />
         </div>

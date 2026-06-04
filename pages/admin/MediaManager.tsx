@@ -1,228 +1,231 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { api } from '../../services/api';
-import { Product } from '../../types';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/Button';
-import { Upload, Star, Trash, X, Save, ImageIcon, Check } from 'lucide-react';
+import { Upload, Trash, Copy, Check, ImageIcon, Star } from 'lucide-react';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+type SiteImage = {
+  name: string;
+  url: string;
+  updated_at: string;
+};
+
+type SiteSetting = {
+  key: string;
+  value: string;
+};
 
 export const MediaManager: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [images, setImages] = useState<SiteImage[]>([]);
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [images, setImages] = useState<string[]>([]);
-  const [primaryImage, setPrimaryImage] = useState<string>('');
-  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await api.products.getAll();
-      setProducts(data);
+      const { supabase } = await import('../../services/supabase');
+      const s = supabase!;
+
+      const [imgResult, settingsResult] = await Promise.all([
+        s.storage.from('site-assets').list(),
+        s.from('site_settings').select('*'),
+      ]);
+
+      if (imgResult.error) throw imgResult.error;
+      if (settingsResult.error) throw settingsResult.error;
+
+      const siteImages: SiteImage[] = (imgResult.data || [])
+        .filter(f => !f.id.endsWith('.emptyFolderPlaceholder'))
+        .map(f => ({
+          name: f.name,
+          url: `${SUPABASE_URL}/storage/v1/object/public/site-assets/${f.name}`,
+          updated_at: f.updated_at || f.created_at || '',
+        }));
+
+      setImages(siteImages);
+
+      const settingsMap: Record<string, string> = {};
+      (settingsResult.data as SiteSetting[] || []).forEach(s => {
+        settingsMap[s.key] = s.value;
+      });
+      setSettings(settingsMap);
     } catch {
-      setMessage({ type: 'error', text: 'Failed to load products' });
+      setMessage({ type: 'error', text: 'Failed to load media library' });
     }
     setLoading(false);
   };
 
-  const openEditor = (product: Product) => {
-    setEditingProduct(product);
-    setImages(product.images && product.images.length > 0 ? [...product.images] : [product.image || '']);
-    setPrimaryImage(product.image || '');
-    setMessage(null);
-  };
-
-  const closeEditor = () => {
-    setEditingProduct(null);
-    setImages([]);
-    setPrimaryImage('');
-    setMessage(null);
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const readers: Promise<string>[] = [];
-    Array.from(files).forEach(file => {
-      readers.push(new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      }));
-    });
-
-    Promise.all(readers).then(newImages => {
-      setImages(prev => {
-        const updated = [...prev, ...newImages];
-        if (!primaryImage) setPrimaryImage(newImages[0]);
-        return updated;
-      });
-    });
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setImages(prev => {
-      const updated = prev.filter((_, i) => i !== index);
-      if (prev[index] === primaryImage) {
-        setPrimaryImage(updated.length > 0 ? updated[0] : '');
-      }
-      return updated;
-    });
-  };
-
-  const handleSave = async () => {
-    if (!editingProduct) return;
-    setSaving(true);
+    setUploading(true);
     setMessage(null);
+    const { supabase } = await import('../../services/supabase');
+    const s = supabase!;
 
-    const finalImage = primaryImage || images[0] || '';
-    const finalImages = images.length > 0 ? images : [finalImage];
-
-    try {
-      await api.products.update(editingProduct.id, {
-        image: finalImage,
-        images: finalImages,
-      });
-      setMessage({ type: 'success', text: 'Images updated successfully' });
-      loadProducts();
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to save images' });
+    let successCount = 0;
+    for (const file of Array.from(files)) {
+      const path = `${Date.now()}-${file.name}`;
+      const { error } = await s.storage.from('site-assets').upload(path, file);
+      if (!error) successCount++;
     }
-    setSaving(false);
+
+    if (successCount > 0) {
+      setMessage({ type: 'success', text: `${successCount} image(s) uploaded` });
+      loadData();
+    } else {
+      setMessage({ type: 'error', text: 'Upload failed' });
+    }
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const handleDelete = async (name: string) => {
+    if (!window.confirm(`Delete "${name}"?`)) return;
+    setMessage(null);
+    const { supabase } = await import('../../services/supabase');
+    const s = supabase!;
+
+    const { error } = await s.storage.from('site-assets').remove([name]);
+    if (error) {
+      setMessage({ type: 'error', text: 'Failed to delete' });
+      return;
+    }
+
+    setMessage({ type: 'success', text: 'Image deleted' });
+    loadData();
+  };
+
+  const handleCopyUrl = async (url: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to copy URL' });
+    }
+  };
+
+  const setBanner = async (key: string, value: string) => {
+    setMessage(null);
+    const { supabase } = await import('../../services/supabase');
+    const s = supabase!;
+
+    const newValue = settings[key] === value ? '' : value;
+    const { error } = await s.from('site_settings').upsert({ key, value: newValue }, { onConflict: 'key' });
+
+    if (error) {
+      setMessage({ type: 'error', text: 'Failed to update setting' });
+      return;
+    }
+
+    setSettings(prev => ({ ...prev, [key]: newValue }));
+    setMessage({ type: 'success', text: newValue ? 'Banner updated' : 'Banner removed' });
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Media Manager</h1>
-        {editingProduct && (
-          <div className="flex space-x-2">
-            <Button onClick={handleSave} isLoading={saving}>
-              <Save className="h-4 w-4 mr-2" /> Save
-            </Button>
-            <Button variant="outline" onClick={closeEditor}>
-              <X className="h-4 w-4 mr-2" /> Cancel
-            </Button>
-          </div>
-        )}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Site Media Manager</h1>
+          <p className="text-sm text-gray-500 mt-1">Upload and manage site banners and images</p>
+        </div>
+        <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-medical-600 text-white text-sm font-medium rounded-md hover:bg-medical-700 focus:outline-none">
+          <Upload className="h-4 w-4 mr-2" />
+          {uploading ? 'Uploading...' : 'Upload Images'}
+          <input type="file" className="hidden" multiple accept="image/*" onChange={handleUpload} disabled={uploading} />
+        </label>
       </div>
 
       {message && (
         <div className={`mb-4 px-4 py-3 rounded-md text-sm font-medium ${
           message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
         }`}>
-          <div className="flex items-center">
-            {message.type === 'success' ? <Check className="h-4 w-4 mr-2" /> : <X className="h-4 w-4 mr-2" />}
-            {message.text}
-          </div>
+          {message.text}
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading products...</div>
+        <div className="text-center py-12 text-gray-500">Loading media library...</div>
       ) : (
         <>
-          {editingProduct && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">{editingProduct.name}</h2>
-              <p className="text-sm text-gray-500 mb-4">Manage images for this product</p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                {images.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className={`relative group aspect-square rounded-lg overflow-hidden border-2 ${
-                      img === primaryImage ? 'border-medical-500 ring-2 ring-medical-500' : 'border-gray-200'
-                    }`}
-                  >
-                    <img src={img} alt={`Product image ${idx + 1}`} className="w-full h-full object-cover" />
-
-                    {img === primaryImage && (
-                      <div className="absolute top-1 left-1 bg-medical-500 text-white p-1 rounded-full shadow-sm">
-                        <Star className="h-3 w-3 fill-current" />
-                      </div>
-                    )}
-
-                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center space-x-2 transition-opacity">
-                      {img !== primaryImage && (
-                        <button
-                          type="button"
-                          onClick={() => setPrimaryImage(img)}
-                          className="text-white hover:text-yellow-300 p-1"
-                          title="Set as Primary"
-                        >
-                          <Star className="h-5 w-5" />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="text-white hover:text-red-300 p-1"
-                        title="Remove Image"
-                      >
-                        <Trash className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <label className="border-2 border-gray-300 border-dashed rounded-lg flex flex-col items-center justify-center aspect-square cursor-pointer hover:bg-gray-50">
-                  <Upload className="h-6 w-6 text-gray-400" />
-                  <span className="mt-1 text-xs font-medium text-gray-500">Add Images</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                  />
-                </label>
-              </div>
+          {images.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-lg border-2 border-dashed border-gray-300">
+              <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">No images yet</p>
+              <p className="text-gray-400 text-sm mt-1">Upload images to use as site banners</p>
             </div>
-          )}
-
-          {products.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">No products found.</div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {products.map(product => (
-                <button
-                  key={product.id}
-                  onClick={() => openEditor(product)}
-                  className={`group bg-white rounded-lg shadow-sm border-2 overflow-hidden text-left transition-all hover:shadow-md ${
-                    editingProduct?.id === product.id ? 'border-medical-500' : 'border-transparent hover:border-gray-300'
-                  }`}
-                >
-                  <div className="aspect-square bg-gray-100 relative">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {product.images && product.images.length > 1 && (
-                      <span className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                        +{product.images.length - 1}
-                      </span>
-                    )}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 bg-medical-600 text-white text-xs px-3 py-1.5 rounded-full font-medium transition-all">
-                        Edit Images
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {images.map((img, index) => {
+                const isHero = settings.hero_image === img.name;
+                const isAbout = settings.about_image === img.name;
+
+                return (
+                  <div key={img.name} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group">
+                    <div className="aspect-video bg-gray-100 relative">
+                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <div className="absolute top-1 left-1 flex space-x-1">
+                        {isHero && (
+                          <span className="bg-medical-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center">
+                            <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Hero
+                          </span>
+                        )}
+                        {isAbout && (
+                          <span className="bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center">
+                            <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> About
+                          </span>
+                        )}
+                      </div>
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100">
+                        <button
+                          onClick={() => handleCopyUrl(img.url, index)}
+                          className="bg-white text-gray-700 p-1.5 rounded-full shadow hover:bg-gray-100"
+                          title="Copy URL"
+                        >
+                          {copiedIndex === index ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(img.name)}
+                          className="bg-white text-red-600 p-1.5 rounded-full shadow hover:bg-gray-100"
+                          title="Delete"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-2 space-y-1.5">
+                      <p className="text-xs text-gray-900 truncate font-medium">{img.name}</p>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => setBanner('hero_image', img.name)}
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                            isHero ? 'bg-medical-100 text-medical-700' : 'bg-gray-100 text-gray-500 hover:bg-medical-50 hover:text-medical-600'
+                          }`}
+                        >
+                          {isHero ? 'Hero ✓' : 'Set as Hero'}
+                        </button>
+                        <button
+                          onClick={() => setBanner('about_image', img.name)}
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                            isAbout ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500 hover:bg-purple-50 hover:text-purple-600'
+                          }`}
+                        >
+                          {isAbout ? 'About ✓' : 'Set as About'}
+                        </button>
                       </div>
                     </div>
                   </div>
-                  <div className="p-2">
-                    <p className="text-xs font-medium text-gray-900 truncate leading-tight">{product.name}</p>
-                    <div className="flex items-center mt-1 space-x-2 text-[10px] text-gray-400">
-                      <ImageIcon className="h-3 w-3" />
-                      <span>{product.images?.length || 1} images</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </>
