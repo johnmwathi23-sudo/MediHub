@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '../../components/ui/Button';
-import { Upload, Trash, Copy, Check, ImageIcon, Star } from 'lucide-react';
+import { Upload, Trash, Copy, Check, ImageIcon, Star, RefreshCw } from 'lucide-react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -22,6 +22,8 @@ export const MediaManager: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [replacing, setReplacing] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
@@ -42,7 +44,7 @@ export const MediaManager: React.FC = () => {
       if (settingsResult.error) throw settingsResult.error;
 
       const siteImages: SiteImage[] = (imgResult.data || [])
-        .filter(f => !f.id.endsWith('.emptyFolderPlaceholder'))
+        .filter(f => f.name && !f.name.startsWith('.'))
         .map(f => ({
           name: f.name,
           url: `${SUPABASE_URL}/storage/v1/object/public/site-assets/${f.name}`,
@@ -100,8 +102,34 @@ export const MediaManager: React.FC = () => {
       return;
     }
 
+    // Clear any settings using this image
+    const affected = Object.entries(settings).filter(([, v]) => v === name);
+    for (const [key] of affected) {
+      await s.from('site_settings').upsert({ key, value: '' }, { onConflict: 'key' });
+    }
+
     setMessage({ type: 'success', text: 'Image deleted' });
     loadData();
+  };
+
+  const handleReplace = async (name: string, file: File) => {
+    setReplacing(name);
+    setMessage(null);
+    const { supabase } = await import('../../services/supabase');
+    const s = supabase!;
+
+    const { error } = await s.storage.from('site-assets').update(name, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+    if (error) {
+      setMessage({ type: 'error', text: `Failed to replace "${name}"` });
+    } else {
+      setMessage({ type: 'success', text: `"${name}" replaced` });
+      loadData();
+    }
+    setReplacing(null);
   };
 
   const handleCopyUrl = async (url: string, index: number) => {
@@ -186,6 +214,22 @@ export const MediaManager: React.FC = () => {
                         )}
                       </div>
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100">
+                        <label className="bg-white text-blue-600 p-1.5 rounded-full shadow hover:bg-gray-100 cursor-pointer" title="Replace">
+                          {replacing === img.name ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={e => {
+                              if (e.target.files?.[0]) handleReplace(img.name, e.target.files[0]);
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
                         <button
                           onClick={() => handleCopyUrl(img.url, index)}
                           className="bg-white text-gray-700 p-1.5 rounded-full shadow hover:bg-gray-100"
