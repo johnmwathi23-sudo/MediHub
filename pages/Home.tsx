@@ -10,10 +10,16 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [heroImage, setHeroImage] = useState('/hero.png');
+  const [heroImage, setHeroImage] = useState('');
+  const [heroLoaded, setHeroLoaded] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
+    const cached = sessionStorage.getItem('medihub_hero');
+    if (cached) {
+      setHeroImage(cached);
+    }
+
     const fetchData = async () => {
       const all = await api.products.getAll();
       setFeaturedProducts(all.filter(p => p.featured || p.rating >= 4.8).slice(0, 4));
@@ -23,7 +29,9 @@ export const Home: React.FC = () => {
         const s = supabase!;
         const { data } = await s.from('site_settings').select('value').eq('key', 'hero_image').single();
         if (data?.value) {
-          setHeroImage(`${SUPABASE_URL}/storage/v1/object/public/site-assets/${data.value}`);
+          const url = `${SUPABASE_URL}/storage/v1/object/public/site-assets/${data.value}`;
+          setHeroImage(url);
+          sessionStorage.setItem('medihub_hero', url);
         }
       } catch {}
     };
@@ -61,12 +69,16 @@ export const Home: React.FC = () => {
             </main>
           </div>
         </div>
-        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-          <img
-            className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full shadow-lg rounded-l-3xl"
-            src={heroImage}
-            alt="Advanced Medical Equipment"
-          />
+        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-200">
+          {heroImage && (
+            <img
+              className={`h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full shadow-lg rounded-l-3xl transition-opacity duration-500 ${heroLoaded ? 'opacity-100' : 'opacity-0'}`}
+              src={heroImage}
+              alt="Advanced Medical Equipment"
+              onLoad={() => setHeroLoaded(true)}
+              onError={() => { setHeroImage(''); setHeroLoaded(false); }}
+            />
+          )}
         </div>
       </div>
 

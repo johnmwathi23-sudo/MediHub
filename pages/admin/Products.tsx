@@ -26,6 +26,7 @@ export const AdminProducts: React.FC = () => {
     shortDescription: '',
     longDescription: '',
     specifications: {},
+    featured: false,
   });
 
   // CSV Import State
@@ -51,6 +52,11 @@ export const AdminProducts: React.FC = () => {
       await api.products.delete(id);
       loadProducts();
     }
+  };
+
+  const toggleFeatured = async (product: Product) => {
+    await api.products.update(product.id, { featured: !product.featured });
+    loadProducts();
   };
 
   const handleOpenModal = (product?: Product) => {
@@ -229,15 +235,15 @@ export const AdminProducts: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
-        <div className="flex space-x-2">
-            <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+        <div className="flex flex-col w-full sm:w-auto sm:flex-row sm:space-x-2 gap-2">
+            <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                 <FileText className="h-4 w-4 mr-2" />
                 Import CSV
                 <input type="file" className="hidden" accept=".csv" onChange={handleCsvFile} />
             </label>
-            <Button onClick={() => handleOpenModal()}>
+            <Button onClick={() => handleOpenModal()} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" /> Add New Product
             </Button>
         </div>
@@ -251,13 +257,20 @@ export const AdminProducts: React.FC = () => {
                 <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-12 w-12 relative group">
-                       <img className="h-12 w-12 rounded-md object-cover" src={product.image} alt="" />
-                       {product.images && product.images.length > 1 && (
-                           <span className="absolute -top-1 -right-1 bg-medical-600 text-white text-[10px] px-1 rounded-full">+{product.images.length-1}</span>
-                       )}
+                      <img className="h-12 w-12 rounded-md object-cover" src={product.image} alt="" />
+                        {product.images && product.images.length > 1 && (
+                            <span className="absolute -top-1 -right-1 bg-medical-600 text-white text-[10px] px-1 rounded-full">+{product.images.length-1}</span>
+                        )}
                     </div>
                     <div className="ml-4">
-                       <p className="text-sm font-medium text-medical-600 truncate">{product.name}</p>
+                       <p className="text-sm font-medium text-medical-600 truncate flex items-center">
+                         {product.name}
+                         {product.featured && (
+                           <span className="ml-2 text-medical-600">
+                             <Star className="h-4 w-4 fill-current" title="Featured" />
+                           </span>
+                         )}
+                       </p>
                        <p className="flex items-center text-sm text-gray-500">
                           Stock: <span className={`ml-1 font-bold ${product.stock < 10 ? 'text-red-500' : 'text-green-500'}`}>{product.stock}</span>
                        </p>
@@ -265,13 +278,20 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 </div>
                 <div className="ml-5 flex-shrink-0 flex space-x-1">
-                   <button onClick={() => handleOpenModal(product)} className="text-gray-400 hover:text-medical-600 p-2">
-                      <Edit className="h-5 w-5" />
-                   </button>
-                   <button onClick={() => handleDelete(product.id)} className="text-gray-400 hover:text-red-600 p-2">
-                      <Trash className="h-5 w-5" />
-                   </button>
-                </div>
+                    <button onClick={() => handleOpenModal(product)} className="text-gray-400 hover:text-medical-600 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Edit product">
+                       <Edit className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => toggleFeatured(product)}
+                      className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center ${product.featured ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'}`}
+                      aria-label={product.featured ? "Remove from featured" : "Add to featured"}
+                    >
+                       <Star className={`h-5 w-5 ${product.featured ? 'fill-current' : ''}`} />
+                    </button>
+                    <button onClick={() => handleDelete(product.id)} className="text-gray-400 hover:text-red-600 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Delete product">
+                       <Trash className="h-5 w-5" />
+                    </button>
+                 </div>
               </div>
             </li>
           ))}
@@ -381,6 +401,19 @@ export const AdminProducts: React.FC = () => {
                             <input type="number" required value={formData.stock} onChange={e => setFormData({...formData, stock: Number(e.target.value)})} className="mt-1 focus:ring-medical-500 focus:border-medical-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md border p-2" />
                         </div>
 
+                         {/* Featured */}
+                         <div className="sm:col-span-3">
+                            <label className="flex items-center">
+                              <input 
+                                type="checkbox" 
+                                checked={formData.featured || false} 
+                                onChange={e => setFormData({...formData, featured: e.target.checked})} 
+                                className="h-4 w-4 text-medical-600 focus:ring-medical-500 border-gray-300 rounded"
+                              />
+                              <span className="ml-2 text-sm font-medium text-gray-700">Featured Product</span>
+                            </label>
+                         </div>
+
                          {/* Image Upload Gallery */}
                          <div className="sm:col-span-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Product Images</label>
@@ -397,13 +430,13 @@ export const AdminProducts: React.FC = () => {
                                         )}
 
                                         {/* Hover Actions */}
-                                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 flex items-center justify-center space-x-2 transition-opacity">
+                                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 flex items-center justify-center space-x-3 transition-opacity">
                                             {img !== formData.image && (
-                                                <button type="button" onClick={() => setPrimaryImage(img)} className="text-white hover:text-medical-200" title="Make Primary">
+                                                <button type="button" onClick={() => setPrimaryImage(img)} className="text-white hover:text-medical-200 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Make Primary">
                                                     <Star className="h-5 w-5" />
                                                 </button>
                                             )}
-                                            <button type="button" onClick={() => removeImage(idx)} className="text-white hover:text-red-300" title="Remove">
+                                            <button type="button" onClick={() => removeImage(idx)} className="text-white hover:text-red-300 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Remove">
                                                 <Trash className="h-5 w-5" />
                                             </button>
                                         </div>

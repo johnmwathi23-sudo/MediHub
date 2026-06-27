@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, User, Menu, X, LogOut, Plus } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, LogOut, Plus, LayoutDashboard, Package, ClipboardCheck, ImageIcon } from 'lucide-react';
 import { Button } from './ui/Button';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -40,6 +40,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                           </div>
                           <div className="flex items-center space-x-2 sm:space-x-4">
                               <span className="hidden sm:inline text-sm text-gray-300">Welcome, {user?.name}</span>
+            <span className="sm:hidden text-sm text-gray-300"><User className="h-5 w-5" /></span>
                               <Button variant="danger" size="sm" onClick={handleLogout}>Logout</Button>
                               <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="sm:hidden text-white p-1">
                                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -51,13 +52,21 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     <div className="sm:hidden bg-slate-700 px-4 py-3 space-y-2 border-t border-slate-600">
                       {isAdmin && (
                         <>
-                          <Link to="/admin/dashboard" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
-                          <Link to="/admin/products" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Products</Link>
-                          <Link to="/admin/orders" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Orders</Link>
+                          <Link to="/admin/dashboard" className="flex items-center px-3 py-2.5 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>
+                            <LayoutDashboard className="h-4 w-4 mr-3" /> Dashboard
+                          </Link>
+                          <Link to="/admin/products" className="flex items-center px-3 py-2.5 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>
+                            <Package className="h-4 w-4 mr-3" /> Products
+                          </Link>
+                          <Link to="/admin/orders" className="flex items-center px-3 py-2.5 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>
+                            <ClipboardCheck className="h-4 w-4 mr-3" /> Orders
+                          </Link>
                         </>
                       )}
                       {canAccessAdmin && (
-                        <Link to="/admin/media" className="block px-3 py-2 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>Media</Link>
+                        <Link to="/admin/media" className="flex items-center px-3 py-2.5 text-sm rounded-md hover:bg-slate-600" onClick={() => setIsMobileMenuOpen(false)}>
+                          <ImageIcon className="h-4 w-4 mr-3" /> Media
+                        </Link>
                       )}
                     </div>
                   )}

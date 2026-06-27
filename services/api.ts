@@ -111,7 +111,7 @@ export const api = {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(error.message);
       const user = data.user;
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       return {
         id: user.id,
         name: profile?.name || user.email || '',
@@ -137,7 +137,7 @@ export const api = {
     getCurrentUser: async (): Promise<User | null> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       return {
         id: user.id,
         name: profile?.name || user.email || '',

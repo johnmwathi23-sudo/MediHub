@@ -4,16 +4,24 @@ import { Target, Users, Award, ShieldCheck } from 'lucide-react';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export const About: React.FC = () => {
-    const [aboutImage, setAboutImage] = useState('/about-hero.png');
+    const [aboutImage, setAboutImage] = useState('');
+    const [aboutLoaded, setAboutLoaded] = useState(false);
 
     useEffect(() => {
+        const cached = sessionStorage.getItem('medihub_about');
+        if (cached) {
+            setAboutImage(cached);
+        }
+
         const loadImage = async () => {
             try {
                 const { supabase } = await import('../services/supabase');
                 const s = supabase!;
                 const { data } = await s.from('site_settings').select('value').eq('key', 'about_image').single();
                 if (data?.value) {
-                    setAboutImage(`${SUPABASE_URL}/storage/v1/object/public/site-assets/${data.value}`);
+                    const url = `${SUPABASE_URL}/storage/v1/object/public/site-assets/${data.value}`;
+                    setAboutImage(url);
+                    sessionStorage.setItem('medihub_about', url);
                 }
             } catch {}
         };
@@ -35,12 +43,16 @@ export const About: React.FC = () => {
                                 world-class biomedical technology and local healthcare providers.
                             </p>
                         </div>
-                        <div className="mt-10 lg:mt-0 lg:w-1/2 lg:pl-10">
-                            <img
-                                className="rounded-2xl shadow-xl w-full object-cover h-56 sm:h-80 lg:h-96 border-4 border-white"
-                                src={aboutImage}
-                                alt="MediHub Medical Team"
-                            />
+                        <div className="mt-10 lg:mt-0 lg:w-1/2 lg:pl-10 bg-gray-200 rounded-2xl">
+                            {aboutImage && (
+                                <img
+                                    className={`rounded-2xl shadow-xl w-full object-cover h-56 sm:h-80 lg:h-96 border-4 border-white transition-opacity duration-500 ${aboutLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    src={aboutImage}
+                                    alt="MediHub Medical Team"
+                                    onLoad={() => setAboutLoaded(true)}
+                                    onError={() => { setAboutImage(''); setAboutLoaded(false); }}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

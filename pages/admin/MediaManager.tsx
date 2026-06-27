@@ -213,8 +213,8 @@ export const MediaManager: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 group-focus-within:bg-opacity-40 transition-all flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-                        <label className="bg-white text-blue-600 p-1.5 rounded-full shadow hover:bg-gray-100 cursor-pointer" title="Replace">
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 group-focus-within:bg-opacity-40 transition-all flex items-center justify-center space-x-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+                        <label className="bg-white text-blue-600 p-2.5 min-w-[44px] min-h-[44px] rounded-full shadow hover:bg-gray-100 cursor-pointer flex items-center justify-center" title="Replace">
                           {replacing === img.name ? (
                             <RefreshCw className="h-4 w-4 animate-spin" />
                           ) : (
@@ -232,14 +232,14 @@ export const MediaManager: React.FC = () => {
                         </label>
                         <button
                           onClick={() => handleCopyUrl(img.url, index)}
-                          className="bg-white text-gray-700 p-1.5 rounded-full shadow hover:bg-gray-100"
+                          className="bg-white text-gray-700 p-2.5 min-w-[44px] min-h-[44px] rounded-full shadow hover:bg-gray-100 flex items-center justify-center"
                           title="Copy URL"
                         >
                           {copiedIndex === index ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                         </button>
                         <button
                           onClick={() => handleDelete(img.name)}
-                          className="bg-white text-red-600 p-1.5 rounded-full shadow hover:bg-gray-100"
+                          className="bg-white text-red-600 p-2.5 min-w-[44px] min-h-[44px] rounded-full shadow hover:bg-gray-100 flex items-center justify-center"
                           title="Delete"
                         >
                           <Trash className="h-4 w-4" />
@@ -248,10 +248,10 @@ export const MediaManager: React.FC = () => {
                     </div>
                     <div className="p-2 space-y-1.5">
                       <p className="text-xs text-gray-900 truncate font-medium">{img.name}</p>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-col sm:flex-row gap-1.5">
                         <button
                           onClick={() => setBanner('hero_image', img.name)}
-                          className={`text-xs px-3 py-1.5 rounded-full font-medium ${
+                          className={`text-xs px-3 py-2 rounded-full font-medium w-full sm:w-auto ${
                             isHero ? 'bg-medical-100 text-medical-700' : 'bg-gray-100 text-gray-500 hover:bg-medical-50 hover:text-medical-600'
                           }`}
                         >
@@ -259,7 +259,7 @@ export const MediaManager: React.FC = () => {
                         </button>
                         <button
                           onClick={() => setBanner('about_image', img.name)}
-                          className={`text-xs px-3 py-1.5 rounded-full font-medium ${
+                          className={`text-xs px-3 py-2 rounded-full font-medium w-full sm:w-auto ${
                             isAbout ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500 hover:bg-purple-50 hover:text-purple-600'
                           }`}
                         >
