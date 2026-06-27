@@ -22,7 +22,7 @@ export const Home: React.FC = () => {
 
     const fetchData = async () => {
       const all = await api.products.getAll();
-      setFeaturedProducts(all.filter(p => p.featured || p.rating >= 4.8).slice(0, 4));
+      setFeaturedProducts(all.filter(p => p.featured || p.rating >= 4.8).slice(0, 10));
 
       try {
         const { supabase } = await import('../services/supabase');
@@ -97,7 +97,55 @@ export const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Features */}
+      {/* Featured Products (moved after Top Categories) */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Featured Products</h2>
+            <Link to="/shop" className="text-medical-600 hover:text-medical-800 flex items-center">
+              View all <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+            {featuredProducts.map((product) => (
+              <div key={product.id} className="group relative bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-full min-h-60 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-60 lg:aspect-none">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-center object-cover lg:w-full lg:h-full"
+                  />
+                </div>
+                <div className="mt-4 flex justify-between">
+                  <div>
+                    <h3 className="text-sm text-gray-700 truncate flex items-center gap-2">
+                      <Link to={`/product/${product.id}`} className="flex-1">
+                        <span aria-hidden="true" className="absolute inset-0" />
+                        {product.name}
+                      </Link>
+                      {product.featured && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
+                          <Star className="h-3 w-3 fill-current mr-1" />
+                          Featured
+                        </span>
+                      )}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{product.category}</p>
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">KES {product.price.toLocaleString()}</p>
+                </div>
+                <div className="mt-2 flex items-center">
+                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                  <span className="ml-1 text-xs text-gray-500">{product.rating} ({product.reviews})</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Features / Why Choose MediHub */}
       <div className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:text-center">
@@ -139,48 +187,6 @@ export const Home: React.FC = () => {
                 </dd>
               </div>
             </dl>
-          </div>
-        </div>
-      </div>
-
-      {/* Featured Products */}
-      <div className="bg-gray-50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Featured Products</h2>
-            <Link to="/shop" className="text-medical-600 hover:text-medical-800 flex items-center">
-              View all <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-4 xl:gap-x-8">
-            {featuredProducts.map((product) => (
-              <div key={product.id} className="group relative bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-full min-h-60 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-60 lg:aspect-none">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-center object-cover lg:w-full lg:h-full"
-                  />
-                </div>
-                <div className="mt-4 flex justify-between">
-                  <div>
-                    <h3 className="text-sm text-gray-700 truncate">
-                      <Link to={`/product/${product.id}`}>
-                        <span aria-hidden="true" className="absolute inset-0" />
-                        {product.name}
-                      </Link>
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">{product.category}</p>
-                  </div>
-                  <p className="text-sm font-medium text-gray-900">KES {product.price.toLocaleString()}</p>
-                </div>
-                <div className="mt-2 flex items-center">
-                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                  <span className="ml-1 text-xs text-gray-500">{product.rating} ({product.reviews})</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
