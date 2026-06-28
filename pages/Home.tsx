@@ -39,7 +39,7 @@ export const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-white">
+    <div className="bg-white overflow-x-hidden max-w-full">
       {/* Hero */}
       <div className="relative bg-medical-50 overflow-hidden">
         <div className="max-w-7xl mx-auto">
@@ -98,7 +98,7 @@ export const Home: React.FC = () => {
       </div>
 
       {/* Featured Products (moved after Top Categories) */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gray-50 py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Featured Products</h2>
@@ -107,37 +107,36 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+          <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
             {featuredProducts.map((product) => (
-              <div key={product.id} className="group relative bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-full min-h-60 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-60 lg:aspect-none">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-center object-cover lg:w-full lg:h-full"
-                  />
+              <div key={product.id} className="group relative bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="w-full bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden group-hover:opacity-75 lg:aspect-none">
+                  <Link to={`/product/${product.id}`}>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-60 object-center object-cover"
+                    />
+                  </Link>
                 </div>
-                <div className="mt-4 flex justify-between">
-                  <div>
-                    <h3 className="text-sm text-gray-700 truncate flex items-center gap-2">
-                      <Link to={`/product/${product.id}`} className="flex-1">
-                        <span aria-hidden="true" className="absolute inset-0" />
-                        {product.name}
-                      </Link>
-                      {product.featured && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
-                          <Star className="h-3 w-3 fill-current mr-1" />
-                          Featured
-                        </span>
-                      )}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">{product.category}</p>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-1 min-w-0">
+                    <Link to={`/product/${product.id}`} className="text-sm text-gray-700 hover:text-medical-600 truncate min-w-0">
+                      {product.name}
+                    </Link>
+                    {product.featured && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap shrink-0">
+                        <Star className="h-3 w-3 fill-current mr-1" />
+                        Featured
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 truncate mb-1">{product.category}</p>
+                  <div className="flex items-center mb-2">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current shrink-0" />
+                    <span className="ml-1 text-xs text-gray-500">{product.rating} ({product.reviews})</span>
                   </div>
                   <p className="text-sm font-medium text-gray-900">KES {product.price.toLocaleString()}</p>
-                </div>
-                <div className="mt-2 flex items-center">
-                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                  <span className="ml-1 text-xs text-gray-500">{product.rating} ({product.reviews})</span>
                 </div>
               </div>
             ))}
